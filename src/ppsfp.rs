@@ -105,7 +105,11 @@ impl<'a> PPSFPSimulator<'a> {
             if node.inputs.len() == 0 {
                 continue;
             }
-            let vals: Vec<u32> = node.inputs.iter().map(|inp| self.good[inp]).collect();
+            let mut vals: Vec<u32> = Vec::with_capacity(node.inputs.len());
+            for inp in &node.inputs {
+                let v = self.get_value_from_map(inp, &self.good);
+                vals.push(v);
+            }
             let out = simulate_gate(node.gate_type, &vals);
             self.good.insert(node.outputs[0].clone(), out);
         }
@@ -126,7 +130,11 @@ impl<'a> PPSFPSimulator<'a> {
             if node.outputs[0] == fault.wire {
                 continue;
             }
-            let vals: Vec<u32> = node.inputs.iter().map(|i| self.faulty[i]).collect();
+            let mut vals: Vec<u32> = Vec::with_capacity(node.inputs.len());
+            for i in &node.inputs {
+                let v = self.get_value_from_map(i, &self.faulty);
+                vals.push(v);
+            }
             let out = simulate_gate(node.gate_type, &vals);
             self.faulty.insert(node.outputs[0].clone(), out);
         }
@@ -208,6 +216,18 @@ impl<'a> PPSFPSimulator<'a> {
             }
         }
         diff_bit & 1u32
+    }
+
+    // Get a value for a token: first look in the provided map, then try parsing
+    // it as a Verilog numeric literal (e.g. "1'b0", "32'hFF"), otherwise 0.
+    fn get_value_from_map(&self, key: &str, map: &HashMap<String, u32>) -> u32 {
+        if let Some(&v) = map.get(key) {
+            return v;
+        }
+        if let Some(v) = parse_verilog_number(key) {
+            return v;
+        }
+        0u32
     }
 
     pub fn simulate_patterns_blocks(
@@ -447,4 +467,32 @@ fn simulate_gate(gt: GateType, inputs: &[u32]) -> u32 {
         GateType::NOT => !inputs[0],
         _ => 0,
     }
+}
+
+// Very small Verilog numeric literal parser supporting binary/hex/decimal
+fn parse_verilog_number(s: &str) -> Option<u32> {
+    let t = s.trim();
+    if t.is_empty() {
+        return None;
+    }
+    // plain decimal like 0 or 123
+    if t.chars().all(|c| c.is_digit(10)) {
+        return t.parse::<u32>().ok();
+    }
+    // handle typical form WIDTH'baseVALUE e.g. 32'hFF or 1'b0
+    if let Some(pos) = t.find('\'') {
+        let _width = &t[..pos];
+        let rem = &t[pos + 1..];
+        if rem.len() >= 1 {
+            let base = rem.chars().next().unwrap();
+            let valstr = &rem[1..];
+            match base {
+                'b' | 'B' => return u32::from_str_radix(&valstr.replace('_', ""), 2).ok(),
+                'h' | 'H' => return u32::from_str_radix(&valstr.replace('_', ""), 16).ok(),
+                'd' | 'D' => return valstr.parse::<u32>().ok(),
+                _ => return None,
+            }
+        }
+    }
+    None
 }
