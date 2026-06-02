@@ -1,3 +1,4 @@
+#![allow(unused)] //rimuove i warning per unused import
 use commutations_maximizer::dag::Dag;
 use commutations_maximizer::netlist::{Gate, GateType, Netlist};
 use commutations_maximizer::pattern_generator::InputPattern;
