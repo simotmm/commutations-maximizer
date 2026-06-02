@@ -85,3 +85,8 @@ cargo build
 - Key modules: `src/ppsfp.rs` (simulation), `src/pattern_generator.rs` (pattern packing), `src/parser.rs` (file parsing).
 - To change output behavior edit `src/util.rs::save_bits_result` which controls the `results/` filename.
 
+-------------
+
+Simone Tumminelli s333017
+
+Politecnico di Torino 2026

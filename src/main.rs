@@ -1,3 +1,9 @@
+/*
+thesis side quest
+Simone Tumminelli s333017 2026
+Politecnico di Torino
+*/
+
 #![allow(unused)] //rimuove i warning per unused import
 mod dag;
 mod netlist;
