@@ -22,8 +22,6 @@ This repository is a small, standalone extraction useful for quickly exploring w
 - Simulator state (`src/ppsfp.rs`): during simulation each net is evaluated to a `u32` (packed values), enabling parallel evaluation of 32 test vectors.
 - `Dag` (`src/dag.rs`): topologically ordered gates for fast evaluation in `PPSFPSimulator`.
 
-These compact representations trade off the number of inputs (N <= 5 recommended) for extremely fast bit-parallel simulation.
-
 ## CLI usage
 
 Build and run the program from the project root. Examples below assume you are in the `commutations_maximizer` folder.
